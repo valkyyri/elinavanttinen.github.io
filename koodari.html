@@ -1,0 +1,202 @@
+<!DOCTYPE HTML>
+<!--
+	Massively by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Demo Lab - Elina Vänttinen</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+        <link rel="stylesheet" href="assets/css/prism.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<a href="index.html" class="logo">Demo Lab 2021 - Elina Vänttinen</a>
+					</header>
+
+				<!-- Nav -->
+					<nav id="nav">
+						<ul class="links">
+							<li><a href="index.html">Etusivu</a></li>
+                            <li><a href="esittely.html">Allergiaskanneri</a></li>
+                            <li class="active"><a href="koodari.html">Koodaus</a></li>
+							<li><a href="sm.html">Scrum Master</a></li>
+						</ul>
+						<ul class="icons">
+                            <li><a href="https://www.linkedin.com/in/elina-vanttinen/" class="icon brands fa-linkedin"><span class="label">LinkedIn</span></a></li>
+							<li><a href="https://github.com/valkyyri" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
+						</ul>
+					</nav>
+
+				<!-- Main -->
+					<div id="main">
+
+						<!-- Post -->
+							<section class="post">
+								<header class="major">
+									<h1>Koodaus</h1>
+									<p>Toimin Demo lab -opintojaksolla päätoimisesti koodarina. Tällä sivulla kerron projektissa tekemästäni koodista ja omasta kehityksestäni opintojakson aikana.</p>
+								</header>
+								<div class="image main"><img src="images/pic01.jpg" alt="" /></div>
+                                <p>Oppimistavoitteeni</p>
+                                <p>Tavoitteeni tälle opintojaksolle oli syventää Angularin osaamista, sillä Angularin perusteetkin tuntuivat vielä projektin alussa epäselviltä. 
+                                Toinen tavoite oli oppia käyttämään Gittiä ryhmätyössä. Olin käyttänyt sitä aiemminkin, mutta yhteistyö usean koodarin kanssa hieman pelotti aiemmin koettujen merge-ongelmien vuoksi. 
+                                    Ensin tavoitteet ja niiden saavuttaminen: Angular, Git, API:n käyttö. Esimerkkejä koodista. Bugien korjaamista. </p>
+                                
+                                    <p>Allergeenien vertaaminen, tiedosto result.component.ts:</p>
+
+                                    <pre>
+                                        <code class="language-typoscript">
+                                            import { Component, Input, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { BarcodeService } from '../barcode.service';
+import { AllergenService } from '../allergen.service';
+import { FontService } from '../font.service';
+import { HeaderService } from '../header.service';
+
+@Component({
+  selector: 'app-result',
+  templateUrl: './result.component.html',
+  styleUrls: ['./result.component.css'],
+})
+export class ResultComponent implements OnInit {
+  code: string = '';
+  data: any | null;
+  restext: string = '';
+  description: string = '';
+  logo: any;
+  logocolor: string = '';
+  foundAl = [];
+  barcode = '';
+  image: string | null = '';
+  foundAllergies: string = '';
+  size: string;
+
+  constructor(
+    private router: Router,
+    private barcodeService: BarcodeService,
+    public alServ: AllergenService,
+    public fontService: FontService,
+    public headerService: HeaderService
+  ) {}
+                                        </code>
+                                    </pre>
+                                    <pre>
+                                        <code class="language-typoscript">
+                                            ngOnInit(): void {
+                                                this.size = this.fontService.getFontSize();
+                                                this.updateHeader('SKANNAUSTULOS');
+                                                setTimeout(() => {
+                                                  this.barcodeService.getData().subscribe((response) => {
+                                                    this.data = response;
+                                                    this.code = this.barcodeService.getBarcode();
+                                            
+                                                    if (!this.data.ingredients || this.data.ingredients.length < 2) {
+                                                      this.image =
+                                                        'https://cdn.s-cloud.fi/v1/h480w320/product/ean/' +
+                                                        this.code +
+                                                        '_kuva1.jpg';
+                                                      this.restext = 'VAROITUS!';
+                                                      this.logo = 'error';
+                                                      this.logocolor = 'warn';
+                                                      this.description = 'Tuotetiedot ovat puutteelliset.';
+                                                    } 
+                                                    
+                                                    else if (this.data && this.data.ingredients) {
+                                                      this.compare(this.data.ingredients);
+
+                                                      if (this.foundAl.length !== 0) {
+                                                        this.image =
+                                                          'https://cdn.s-cloud.fi/v1/h480w320/product/ean/' +
+                                                          this.code +
+                                                          '_kuva1.jpg';
+                                                        this.restext = 'VAROITUS!';
+                                                        this.logo = 'error';
+                                                        this.logocolor = 'warn';
+                                                        this.description = 'sopimattomat ruoka-aineet:';
+                                                        this.foundAllergies = this.foundAl.join(', ');
+                                                      } 
+                                                      
+                                                      else {
+                                                        this.image =
+                                                          'https://cdn.s-cloud.fi/v1/h480w320/product/ean/' +
+                                                          this.code +
+                                                          '_kuva1.jpg';
+                                                        this.restext = 'TURVALLINEN!';
+                                                        this.logo = 'check_circle';
+                                                        this.logocolor = 'accent';
+                                                      }
+                                                    }
+                                                  }); // subscribe end
+                                                }, 0);
+                                              } // on init end
+                                        </code>
+                                    </pre>
+                                    <p>Vertailufunktio samassa tiedostossa:</p>
+                                    <pre>
+                                        <code class="language-typoscript">
+                                            compare(ingredients) {
+                                                this.alServ.getAllergens().subscribe((allergens) => {
+                                                  let stringredients = JSON.stringify(ingredients).toLowerCase();
+                                                  allergens.map((allergen) => {
+                                                    let response = stringredients.match(allergen.name.toLowerCase());
+                                                    //check if a set allergen was found in ingredients
+                                                    if (response !== null && allergen.status === true) {
+                                                      let isAlreadyFound: boolean;
+                                                      isAlreadyFound = this.foundAl.includes(response[0]);
+                                                      //avoid repeating the same allergen
+                                                      if (isAlreadyFound === false) {
+                                                        this.foundAl.push(response[0]);
+                                                      }
+                                                    }
+                                                    /* String.match returns null if the allergen is not found,
+                                                  and an array (with the allergen as first item) if the allergen is found */
+                                                  });
+                                                });
+                                              }
+    
+                                        </code>
+                                    </pre>
+                                    <p>Bugien korjaukseen varattiin aikaa projektin lopusta. Tässä esimerkissä korjattiin bugi, jossa kamera jäi päälle, vaikka käyttäjä oli jo poistunut skannerinäkymästä.</p>
+                                <pre>
+                                    <code class="language-typoscript">
+ngOnDestroy() {
+    Quagga.stop();
+} 
+
+                                    </code>
+                                </pre>
+                            </section>
+
+					</div>
+
+				<!-- Copyright -->
+                <div id="copyright">
+                    <ul><li>&copy; Elina Vänttinen, n3898@student.jamk.fi </li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li></ul>
+                </div>
+
+        </div>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+            <script src="assets/js/prism.js"></script>
+
+	</body>
+</html>
