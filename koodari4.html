@@ -1,0 +1,127 @@
+<!DOCTYPE HTML>
+<!--
+	Massively by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Demo Lab - Elina Vänttinen</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+        <link rel="stylesheet" href="assets/css/prism.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<a href="index.html" class="logo">Demo Lab 2021 - Elina Vänttinen</a>
+					</header>
+
+				<!-- Nav -->
+					<nav id="nav">
+						<ul class="links">
+							<li><a href="index.html">Etusivu</a></li>
+                            <li><a href="esittely.html">Allergiaskanneri</a></li>
+                            <li class="active"><a href="koodari.html">Koodaus</a></li>
+							<li><a href="sm.html">Scrum Master</a></li>
+						</ul>
+						<ul class="icons">
+                            <li><a href="https://www.linkedin.com/in/elina-vanttinen/" class="icon brands fa-linkedin"><span class="label">LinkedIn</span></a></li>
+							<li><a href="https://github.com/valkyyri" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
+						</ul>
+					</nav>
+
+				<!-- Main -->
+					<div id="main">
+
+						<!-- Post -->
+							<section class="post">
+                                <h2>Bugit</h2>
+                                <p>Bugien korjaukseen varattiin aikaa projektin lopusta. Tässä esimerkissä korjattiin bugi, jossa kamera jäi päälle, vaikka käyttäjä oli jo poistunut skannerinäkymästä. Koodinpätkä on <b>scanner.component.ts</b> -tiedoston lopussa.</p>
+                            <pre>
+                                <code class="language-typescript">
+ngOnDestroy() {
+Quagga.stop();
+} 
+
+                                </code>
+                            </pre>
+                            <p>Huomasimme, että kaikista tuotteista ei löytynyt kuvaa S-ryhmän tiedoista. Siksi tehtiin ns. oletuskuva, joka korvaa puuttuvan kuvan. Ratkaisu koodattiin suoraan HTML-tiedostoon
+                                 <b>result.component.html</b>. Myös siinä tapauksessa, kun mitään tuotetta ei löytynyt skannatulla koodilla, laitettiin oma oletuskuva näkyviin.</p>
+                            <pre>
+                                <code class="language-markup">
+                                    &lt;div class="productNotFoundView" [ngClass]="['fs' + size]" *ngIf="data === null || data && data.length === 0">
+                                        &lt;img src="../assets/img/ProductNotFound.png">
+                                        &lt;P>Tuotetta ei löytynyt&lt;/P>
+                                        &lt;p> {{code}}&lt;/p>
+                                          &lt;button class="backBtn" mat-fab color="primary" routerLink="/scanner">
+                                            &lt;mat-icon>arrow_back&lt;/mat-icon>
+                                          &lt;/button>
+                                      &lt;/div>
+                                      
+                                      &lt;div [ngClass]="['fs' + size]" *ngIf="data && data.lenght !== 0">
+                                       &lt;img src="{{image}}" (error)="this.image='../assets/img/NotFound.png'"/>
+                                       &lt;P id="fs4-s">{{data.name}}&lt;/P>
+                                        &lt;div id="iconDiv">&lt;mat-icon class="ingredients" color="{{logocolor}}">{{logo}}&lt;/mat-icon>&lt;/div>
+                                        &lt;div [ngClass]="['fs' + size]" class="result-text">{{restext}}&lt;/div>
+                                        &lt;P>{{description}}&lt;/P>
+                                        &lt;div [ngClass]="['fs' + size]" class="allergies-text">{{foundAllergies}}&lt;/div>
+                                        &lt;div>&lt;button mat-raised-button color='primary' class='listBtn' [ngClass]="['fs' + size]" routerLink="/ingredients">Ainesosaluettelo&lt;/button>
+                                          &lt;button class="backBtn2" mat-fab color="primary" routerLink="/scanner">
+                                            &lt;mat-icon>arrow_back&lt;/mat-icon>
+                                          &lt;/button>&lt;/div>
+                                      &lt;/div>
+                                </code>
+                            </pre>
+                            
+                            <h2>Jatkokehitys</h2>
+                         <p> Jatkokehitystä varten seuraavia ominaisuuksia tulisi vielä muuttaa/parantaa: </p>  
+                        <ul>
+                            <li>Viivakoodin skannaus (natiivi sovellus, toinen kirjasto)</li>
+                            <li>Toinen palvelu Foodien rinnalle tuotetietojen hakuun</li>
+                            <li>Puutteelliset tuotetiedot paremmin huomioon</li>
+                            <li>Ruokavalioiden lisääminen (gluteeniton, laktoositon, vegaaninen jne.)</li>
+                        </ul>   
+                        </section>
+													<!-- Footer -->
+                          <footer>
+                            <div class="pagination">
+                              <!--<a href="#" class="previous">Prev</a>-->
+                              <a href="koodari.html" class="page">1</a>
+                              <a href="koodari2.html" class="page">2</a>
+                              <a href="koodari3.html" class="page">3</a>
+                              <a href="#" class="page active">4</a>
+
+
+                            </div>
+                          </footer>
+					</div>
+
+				<!-- Copyright -->
+                <div id="copyright">
+                    <ul><li>&copy; Elina Vänttinen, n3898@student.jamk.fi </li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li></ul>
+                </div>
+
+        </div>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+      <script src="assets/js/prism.js"></script>
+
+
+	</body>
+</html>

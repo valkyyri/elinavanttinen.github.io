@@ -1,0 +1,220 @@
+<!DOCTYPE HTML>
+<!--
+	Massively by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Demo Lab - Elina Vänttinen</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+        <link rel="stylesheet" href="assets/css/prism.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<a href="index.html" class="logo">Demo Lab 2021 - Elina Vänttinen</a>
+					</header>
+
+				<!-- Nav -->
+					<nav id="nav">
+						<ul class="links">
+							<li><a href="index.html">Etusivu</a></li>
+                            <li><a href="esittely.html">Allergiaskanneri</a></li>
+                            <li class="active"><a href="koodari.html">Koodaus</a></li>
+							<li><a href="sm.html">Scrum Master</a></li>
+						</ul>
+						<ul class="icons">
+                            <li><a href="https://www.linkedin.com/in/elina-vanttinen/" class="icon brands fa-linkedin"><span class="label">LinkedIn</span></a></li>
+							<li><a href="https://github.com/valkyyri" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
+						</ul>
+					</nav>
+
+				<!-- Main -->
+					<div id="main">
+
+						<!-- Post -->
+							<section class="post">
+                                <h2>Asetukset</h2>
+	                            <p>Sovellukseen haluttiin Asetukset-valikko, josta käyttäjä pystyy muuttamaan fonttikokoa suuremmaksi ja ottamaan halutessaan skannauksen ääniefektin pois päältä.</p>
+                                <div><img src="images/asetukset.jpg" style="width: 25%; border: 1px solid;" ></div>
+                                <p><b>settings.component.html</b>-tiedosto:</p>
+                                <pre>
+                                <code class="language-markup">
+                                    &lt;div class="center" [ngClass]="['fs' + size]">
+                                        &lt;h1>Äänet&lt;/h1>
+                                        &lt;div class="lower">
+                                          &lt;p>Skannauksen äänimerkki&lt;/p>
+                                          &lt;mat-slide-toggle
+                                            [(ngModel)]="this.beepService.beepOn"
+                                            (ngModelChange)="soundSwitch(this.beepService.beepOn)"
+                                            [checked]="this.beepService.beepOn"
+                                            color="primary"
+                                          >&lt;/mat-slide-toggle>
+                                        &lt;/div>
+                                      
+                                        &lt;h1>Fontti&lt;/h1>
+                                        &lt;div>&lt;mat-slider color="primary" id="slider" min="1" max="4" [(ngModel)]="size" (ngModelChange)="this.fontService.setFontSize(size)" thumbLabel>&lt;/mat-slider>
+                                          
+                                            &lt;p>Säädä tekstin kokoa&lt;/p>
+                                          &lt;/div>
+                                      &lt;/div>
+                                </code>
+                                </pre>
+                                <p><b>settings.component.ts</b>-tiedostossa käytetään servicejä:</p>
+                                <pre>
+                                <code class="language-typescript">
+                                    import { Component, OnInit } from '@angular/core';
+import { BeepService } from '../beep.service';
+import { FontService } from '../font.service';
+import { HeaderService } from '../header.service';
+
+@Component({
+  selector: 'app-settings',
+  templateUrl: './settings.component.html',
+  styleUrls: ['./settings.component.css']
+})
+export class SettingsComponent implements OnInit {
+  size: string;
+
+  constructor(
+    public beepService: BeepService,
+    public fontService: FontService,
+    public headerService: HeaderService,
+  ) {}
+
+  ngOnInit(): void {
+    this.size = this.fontService.getFontSize();
+    this.beepService.getBeepStateFromLocalStorage();
+    this.updateHeader('ASETUKSET');
+  }
+  soundSwitch(toggleState) {
+    this.beepService.setBeepState(toggleState);
+  }
+  beep() {
+    this.beepService.beep();
+  }
+  updateHeader(newHeader) {
+    this.headerService.updateHeader(newHeader);
+  }
+
+}
+
+                                </code>
+                            </pre>
+                            <p> <b>font.service.ts</b>, johon asetetaan haluttu fonttikoko Asetukset-välilehdeltä. Fonttikoko tallentuu local storageen, josta se haetaan kussakin käytetyssä komponentissa oikean fonttikoon näkymiseksi.  </p>
+                            <pre>
+                                <code class="language-typescript">
+
+                                    import { Injectable } from '@angular/core';
+
+                                    @Injectable({
+                                      providedIn: 'root'
+                                    })
+                                    export class FontService {
+                                      size: string;
+                                    
+                                      constructor() { }
+                                      //set the chosen font size to local storage
+                                      setFontSize(newSize){
+                                        this.size = newSize;
+                                        localStorage.setItem('fontSize', newSize);
+                                      }
+                                      //get chosen font size from local storage
+                                      getFontSize(){
+                                        this.size = localStorage.getItem('fontSize');
+                                        return this.size;
+                                      }
+                                    }
+                                    
+                                </code>
+                            </pre>
+                            <p><b>beep.service.ts</b>, joka tallentaa äänimerkin päälle ja pois local storageen. Äänimerkki on oletuksena päällä. </p>
+                            <pre>
+                                <code class="language-typescript">
+
+                                    import { Injectable } from '@angular/core';
+
+                                    @Injectable({
+                                      providedIn: 'root',
+                                    })
+                                    export class BeepService {
+                                      beepOn: boolean = true;
+                                      constructor() {}
+                                    
+                                      beep() {
+                                        if (this.beepOn === true) {
+                                          const audio = new Audio();
+                                          audio.src = '../../assets/beep.wav';
+                                          audio.load();
+                                          audio.play();
+                                        }
+                                      }
+                                    
+                                      setBeepState(toggleState) {
+                                        // set the beep state to service and local storage
+                                        this.beepOn = toggleState;
+                                        if (this.beepOn === true) {
+                                          localStorage.setItem('beep', 'on');
+                                        } else if (this.beepOn === false){
+                                          localStorage.setItem('beep', 'off');
+                                        }
+                                      }
+                                    
+                                      getBeepStateFromLocalStorage(){
+                                        const onOff = localStorage.getItem('beep');
+                                        if (onOff === 'off') {
+                                          this.beepOn = false;
+                                        } else {
+                                          this.beepOn = true;
+                                        }
+                                      }
+                                    
+                                    }
+                                    
+                                </code>
+                            </pre>
+
+                        </section>
+													<!-- Footer -->
+                          <footer>
+                            <div class="pagination">
+                              <!--<a href="#" class="previous">Prev</a>-->
+                              <a href="koodari.html" class="page">1</a>
+                              <a href="koodari2.html" class="page">2</a>
+                              <a href="#" class="page active">3</a>
+                              <a href="koodari4.html" class="page">4</a>
+
+                            </div>
+                          </footer>
+					</div>
+
+				<!-- Copyright -->
+                <div id="copyright">
+                    <ul><li>&copy; Elina Vänttinen, n3898@student.jamk.fi </li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li></ul>
+                </div>
+
+        </div>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+      <script src="assets/js/prism.js"></script>
+
+
+	</body>
+</html>
