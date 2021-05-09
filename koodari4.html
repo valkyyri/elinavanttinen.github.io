@@ -52,8 +52,9 @@ Quagga.stop();
 
                                 </code>
                             </pre>
+                            <div><img src="images/eiloydy.jpg" style="width: 25%; border: 1px solid;" ></div>
                             <p>Huomasimme, että kaikista tuotteista ei löytynyt kuvaa S-ryhmän tiedoista. Siksi tehtiin ns. oletuskuva, joka korvaa puuttuvan kuvan. Ratkaisu koodattiin suoraan HTML-tiedostoon
-                                 <b>result.component.html</b>. Myös siinä tapauksessa, kun mitään tuotetta ei löytynyt skannatulla koodilla, laitettiin oma oletuskuva näkyviin.</p>
+                                 <b>result.component.html</b>. Myös siinä tapauksessa, kun mitään tuotetta ei löytynyt skannatulla koodilla, laitettiin oma oletuskuva näkyviin. Tässä tapauksessa koodi näytetään, jotta voi halutessaan tarkistaa skannautuiko numerosarja oikein. </p>
                             <pre>
                                 <code class="language-markup">
                                     &lt;div class="productNotFoundView" [ngClass]="['fs' + size]" *ngIf="data === null || data && data.length === 0">
@@ -79,7 +80,24 @@ Quagga.stop();
                                       &lt;/div>
                                 </code>
                             </pre>
-                            
+                            <div><img src="images/puutteelliset.jpg" style="width: 25%; border: 1px solid;" ></div>
+
+                            <p>Joissakin tuotteissa huomattiin ainesosaluettelon olevan tyhjä tai luettelon tilalla oli piste. Siinä tapauksessa sovellus kertoi virheellisesti tuotteen olevan turvallinen, koska string.match -metodi ei löydä käyttäjän asettamia allergeeneja tyhjästä luettelosta.
+                               Tämä bugi korjattiin tarkistamalla ainesosaluettelon pituus. Mikäli ainesosaluettelossa on alle kaksi merkkiä tai se on tyhjä, sovellus varoittaa. Koodi on tiedostosta <b>result.component.ts</b>.</p>
+                            <pre>
+                              <code class="language-typescript">
+                                if (!this.data.ingredients || this.data.ingredients.length < 2) {
+                                  this.image =
+                                    'https://cdn.s-cloud.fi/v1/h480w320/product/ean/' +
+                                    this.code +
+                                    '_kuva1.jpg';
+                                  this.restext = 'VAROITUS!';
+                                  this.logo = 'error';
+                                  this.logocolor = 'warn';
+                                  this.description = 'Tuotetiedot ovat puutteelliset.';
+                                }
+                              </code>
+                          </pre> <br>
                             <h2>Jatkokehitys</h2>
                          <p> Jatkokehitystä varten seuraavia ominaisuuksia tulisi vielä muuttaa/parantaa: </p>  
                         <ul>
