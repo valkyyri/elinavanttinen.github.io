@@ -211,11 +211,11 @@
                                           return this.foundAllergens;
                                         }
                                       
-                                      // arr on alkuperäinen taulukko
+                                      // arr is the original array
                                         addElementToObservableArray(item) {
                                           this.array$.pipe(take(1)).subscribe(arr => {
                                             const newArr = [...arr, item];
-                                            this.myAllergens.next(newArr); // tarkoittaa this.myAllergens = newArr
+                                            this.myAllergens.next(newArr); // is similar to this.myAllergens = newArr
                                           })
                                         }
                                       </code>
