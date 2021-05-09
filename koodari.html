@@ -200,6 +200,26 @@
                                             
                                         </code>
                                     </pre>
+<p>Allergeenit haetaan <b>allergen.servicen</b> avulla observablena. Observablen käyttö tuntui hankalalta ja tätä osuutta pähkäiltiin paljon yhdessä. Ilman observableja allergiatietojen päivittyminen ei ollut reaaliaikaista ja saattoi aiheuttaa virheitä skannauksen tulosnäkymässä. </p>
+                                    <pre>
+                                      <code class="language-typescript">
+                                        getAllergens():Observable<any> {
+                                          return this.myAllergens.asObservable();
+                                        }
+                                      
+                                        getFoundAl() {
+                                          return this.foundAllergens;
+                                        }
+                                      
+                                      // arr on alkuperäinen taulukko
+                                        addElementToObservableArray(item) {
+                                          this.array$.pipe(take(1)).subscribe(arr => {
+                                            const newArr = [...arr, item];
+                                            this.myAllergens.next(newArr); // tarkoittaa this.myAllergens = newArr
+                                          })
+                                        }
+                                      </code>
+                                    </pre>
 
 
  
