@@ -1,0 +1,196 @@
+<!DOCTYPE HTML>
+<!--
+	Massively by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Demo Lab - Elina Vänttinen</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+        <link rel="stylesheet" href="assets/css/prism.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<a href="index.html" class="logo">Ticorporate 2021 - Elina Vänttinen</a>
+					</header>
+
+				<!-- Nav -->
+					<nav id="nav">
+						<ul class="links">
+							<li><a href="index.html">Etusivu</a></li>
+                            <li><a href="esittely.html">Allergiaskanneri</a></li>
+							<li><a href="koodari.html">Koodaus: kevät</a></li>
+							<li class="active"><a href="syksy.html">Koodaus: syksy</a></li>
+							<li><a href="sm.html">Scrum Master</a></li>
+						</ul>
+						<ul class="icons">
+                            <li><a href="https://www.linkedin.com/in/elina-vanttinen/" class="icon brands fa-linkedin"><span class="label">LinkedIn</span></a></li>
+							<li><a href="https://github.com/valkyyri" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
+						</ul>
+					</nav>
+
+				<!-- Main -->
+					<div id="main">
+
+						<!-- Post -->
+							<section class="post">
+		
+
+                                <h2> Käyttäjän allergeenien lihavoiminen ainesosaluetteloon </h2>
+
+                              
+                                    <p> Tulosnäkymässä käyttäjä voi painaa nappia Ainesosaluettelo, joka avaa skannatun tuotteen koko ainesosaluettelon. 
+                                        Halusin parantaa näkymää lihavoimalla listasta ne allergeenit, joille käyttäjä on itse allerginen. Tämä toteutettiin
+                                        regular expressionin avulla.
+                    
+
+                                    <pre>
+                                        <code class="language-typescript">
+                                            const regex = new RegExp('(' + this.boldAllergensArray.join('|') + ')','ig');
+                                            this.boldedIngredientList = this.ingredientList.replace(regex, '&lt;b>$1&lt;/b>');
+
+                                      </code>
+                                      </pre>
+
+                                    <p> Testauksessa ainesosalistasta löytyi bugi. Lista ei näkynyt lainkaan ja consoleen ilmestyi regexp-error, jos luettelo sisälsi hakasulkuja. Hakasulut korvattiin myös regular expressionin avulla, niin bugi poistui. 
+                                        Jälkikäteen ajateltuna tämän olisi ehkä voinut ratkaista jollain parempaa koodia edustavalla tavalla.  </p>
+                                    <pre>
+                                        <code class="language-typescript">
+                                            this.ingredientList = JSON.stringify(this.data.ingredients);
+                                            // go through this.boldAllergensArray and replace [ with regex to avoid error
+                                            const reg = /\[/ig;
+                                              // @ts-ignore
+                                            this.boldAllergensArray = this.boldAllergensArray.map(element => {
+                                              // @ts-ignore
+                                              return element.replace(reg, ' ');
+                                            });
+                                        </code>
+                                    </pre>
+                                    <br>
+
+                                    <h2>Fuzzy search</h2>
+                                    <p>Koska suomen kielessä on niin paljon eri sijamuotoja ja allergeenit esiintyvät ainesosalistoissa eri muodoissa,
+                                         päätettiin skannerin toimintaa parantaa implementoimalla sanakirjasto Fuzzysort. Alla paranneltu compare-funktio kokonaisuudessaan. Koodissa suballergeenit tarkoittavat 
+                                        valitun allergeenin synonyymejä, jotka on lisätty allergen serviceen.  </p>
+
+                                         <pre>
+                                             <code class="language-typescript">
+
+                                                compare(ingredients) {
+                                                    this.allergenService.getAllergens().subscribe((allergens) => {
+                                                      let stringredients = JSON.stringify(ingredients).toLowerCase();
+                                                      const regex = /[)(%"\d,.]/g;
+                                                      stringredients = stringredients.replace(regex, ' ');
+                                                      const ingredientArray = stringredients.split(/\s+/);
+                                                
+                                                      // allergen matching begins
+                                                      allergens.forEach((allergen) => {
+                                                        if (allergen.status === true) {
+                                                          const subAllergens = allergen.allergens;
+                                                
+                                                          subAllergens.forEach((subAllergen) => {
+                                                            this.exactMatch = false;
+                                                
+                                                            ingredientArray.forEach((ingredient) => {
+                                                              if (ingredient == subAllergen) {
+                                                                this.exactMatch = true;
+                                                                this.isAlreadyFound =
+                                                                  this.foundAllergensArray.includes(subAllergen);
+                                                
+                                                                if (this.isAlreadyFound === false) {
+                                                                  this.foundAllergensArray.push(subAllergen);
+                                                                }
+                                                              }
+                                                            });
+                                                
+                                                            // fuzzysort action begins if the sub allergen did not match any ingredient yet
+                                                            if (this.exactMatch === false) {
+                                                              const results = fuzzysort.go(subAllergen, ingredientArray, {
+                                                                threshold: -Infinity,
+                                                                limit: Infinity,
+                                                                allowTypo: false,
+                                                              });
+                                                              // results is an array of objects
+                                                              for (let i = 0; i < results.length; i++) {
+                                                                console.log(subAllergen, results[i].target, results[i].score);
+                                                                this.isAlreadyFound = this.foundAllergensArray.includes(
+                                                                  results[i].target
+                                                                );
+                                                                // (results[i].score: the bigger the negative number, the lesser the match. 0 means exact match.
+                                                                if (
+                                                                  results[i].score >= -9005 &&
+                                                                  this.isAlreadyFound === false
+                                                                ) {
+                                                                  this.foundAllergensArray.push(results[i].target);
+                                                                }
+                                                              }
+                                                            }
+                                                          });
+                                                        }
+                                                      });
+                                                    });
+                                                  }
+
+                                             </code>
+                                         </pre>
+                                        <p> Tässä <b>allergen.service.ts</b> -tiedostosta esimerkkinä Muut-kategoria, jossa näkyy listattuna synonyymejä tarkkuuden parantamiseksi.</p>
+                                         <pre>
+                                             <code class="language-typescript">
+                                                others = [
+                                                { id: '75', name: 'maito', allergens: ['maito', 'maitojauhe', 'maitoproteiini', 'hera', 'heraproteiini', 'kaseiini', 'kaseinaatti', 'kerma', 'kuohukerma'],
+                                                gdsn: ['AM'], tag_excludes: '', tag_includes:'8653', phrases: ['maito', 'maitoa'], status: false },
+                                                { id: '76', name: 'kananmuna', allergens: ['kananmuna', 'muna', 'munanvalkuainen', 'munankeltuainen'], 
+                                                gdsn: ['AE'], tag_excludes: '', tag_includes:'8654', phrases: ['kananmuna', 'kananmunaa'], status: false },
+                                              ];
+                                             </code>
+                                         </pre>
+
+
+                                    
+
+
+
+ 
+                            </section>
+													<!-- Footer -->
+                          <footer>
+                            <div class="pagination">
+                              <!--<a href="#" class="previous">Prev</a>-->
+                              <a href="syksy.html" class="page">1</a>
+                              <a href="#" class="page active">2</a>
+
+                            </div>
+                          </footer>
+					</div>
+
+				<!-- Copyright -->
+                <div id="copyright">
+                    <ul><li>&copy; Elina Vänttinen, n3898@student.jamk.fi </li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li></ul>
+                </div>
+
+        </div>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+      <script src="assets/js/prism.js"></script>
+
+
+	</body>
+</html>

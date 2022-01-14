@@ -1,0 +1,300 @@
+<!DOCTYPE HTML>
+<!--
+	Massively by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Demo Lab - Elina Vänttinen</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+        <link rel="stylesheet" href="assets/css/prism.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<a href="index.html" class="logo">Ticorporate 2021 - Elina Vänttinen</a>
+					</header>
+
+				<!-- Nav -->
+					<nav id="nav">
+						<ul class="links">
+							<li><a href="index.html">Etusivu</a></li>
+                            <li><a href="esittely.html">Allergiaskanneri</a></li>
+							<li><a href="koodari.html">Koodaus: kevät</a></li>
+							<li class="active"><a href="syksy.html">Koodaus: syksy</a></li>
+							<li><a href="sm.html">Scrum Master</a></li>
+						</ul>
+						<ul class="icons">
+                            <li><a href="https://www.linkedin.com/in/elina-vanttinen/" class="icon brands fa-linkedin"><span class="label">LinkedIn</span></a></li>
+							<li><a href="https://github.com/valkyyri" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
+						</ul>
+					</nav>
+
+				<!-- Main -->
+					<div id="main">
+
+						<!-- Post -->
+							<section class="post">
+								<header class="major">
+									<h1>Product lab</h1>
+									<p> Tällä sivulla kerron, miten projekti eteni syksyn Product lab-opintojakson aikana demosta julkaisuun.</p>
+								</header>
+		
+
+                                <h2>Panokseni projektiin syksyllä</h2>
+                                <ul>
+                                  <li>Vertailutoiminnon parantaminen, kuten "saattaa sisältää" -maininta</li>
+                                  <li>Ruokavalioiden lisääminen ja tarkistus</li>
+                                  <li>"Fuzzy search" implementointi</li>
+                                  <li>Käyttäjän allergeenien lihavoiminen ainesosaluetteloon</li>
+                                  <li>Tietosuoja-asiat ja CookieBotin lisääminen</li>
+                                  <li>Lighthouse-auditointi ja tehokkuuden parantaminen</li>
+                                  <li>Kilpailija-analyysi</li>
+                                  <li>Julkaisuprosessi Play Storeen</li>
+
+                                </ul>
+                                <h2>Esimerkkejä koodista: Ruokavaliot</h2>
+
+                                <p>Ruokavalioita lisättiin kaksi, laktoositon ja gluteeniton. Käyttäjä asettaa toggle buttonista ruokavalion päälle, jolloin tieto tallentuu local storageen.
+                                    Tätä varten on oma service <b>diet.service.ts</b>. 
+                                </p>
+                                <pre>
+                                    <code class="language-typescript">
+import { Injectable } from '@angular/core';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { take } from 'rxjs/operators';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class DietService {
+
+  myDiets: BehaviorSubject<any[]> = new BehaviorSubject<any[]>([]);
+  array$: Observable<any> =  this.myDiets.asObservable();
+  foundDiets = [];
+  inconclusiveDiets = [];
+
+
+  diets = [
+    { id: '100', name: 'gluteeniton', gdsn: ['AW'], tag_excludes: '7817', tag_includes: '8688', status: false, phrases: ['gluteeni', 'gluteenia']},
+    { id: '101', name: 'laktoositon', gdsn: ['ML', 'AM'], tag_excludes: '7744', tag_includes: '8689', status: false, phrases: ['laktoosi', 'laktoosia']},
+  ];
+
+  constructor() { }
+  // get diet states from local storage
+  getDietsFromLocalStorage() {
+    for (let i = 0; i < this.diets.length; i++) {
+    const status = JSON.parse(localStorage.getItem(this.diets[i].id));
+    if (status === null) { localStorage.setItem(this.diets[i].id, 'false') }
+    this.diets[i].status = JSON.parse(localStorage.getItem(this.diets[i].id));
+    //push ALL the allergens into an array   
+      this.addElementToObservableArray(this.diets[i]);   
+      
+    }
+  }
+
+    //add diet data to local storage
+    slidetogglevaluechange(event, id) {
+      localStorage.setItem(id, JSON.stringify(event));
+      this.array$.subscribe(diet => {
+      })
+    }
+
+    getDiets():Observable<any> {
+      return this.myDiets.asObservable();
+    }
+
+    addInconclusiveDiet(dietName) {
+      if (this.inconclusiveDiets.includes(dietName) === false) {
+        this.inconclusiveDiets.push(dietName);
+      }
+    }
+
+    emptyInconclusiveDiets() {
+      this.inconclusiveDiets = [];
+    }
+
+    addElementToObservableArray(item) {
+      this.array$.pipe(take(1)).subscribe(arr => {
+        const newArr = [...arr, item];
+        this.myDiets.next(newArr);
+      })
+    }
+
+}
+
+
+                                    </code>
+                                </pre>
+                              
+                                    <p> <b>Result.component.ts</b>-tiedostossa funktio dietMatch tarkistaa Foodiesta saadun JSON-datan kolme eri taulukkoa, jotka sisältävät tietoa tuotteen allergeeneista.</p>
+                    
+                                   <pre>
+                                        <code class="language-typescript">
+                                            dietMatch(entry_allergens, tags, product_attributes) {
+                                                this.dietService.getDiets().subscribe((diets) => {
+                                                  // diets is an array of objects
+                                            
+                                                  diets.forEach((diet) => {
+                                                    if (diet.status === true) {
+                                                      let isMentioned = false;
+                                            
+                                                      for (let i = 0; i < entry_allergens.length; i++) {
+                                                        diet.gdsn.forEach((gdsn) => {
+                                                          if (entry_allergens[i].gdsn_code === gdsn) {
+                                                            isMentioned = true;
+                                                            // containment level check
+                                                            if (entry_allergens[i].containment_level == 'CONTAINS') {
+                                                              // make sure we do not repeat the same diet allergen twice
+                                                              this.isAlreadyFound = this.foundAllergensArray.includes(
+                                                                diet.phrases[0]
+                                                              );
+                                                              if (this.isAlreadyFound === false) {
+                                                                this.foundAllergensArray.push(diet.phrases[0]);
+                                                              }
+                                                            } else if (
+                                                              entry_allergens[i].containment_level == 'MAY_CONTAIN'
+                                                            ) {
+                                                              this.isAlreadyFound = this.mayContainArray.includes(
+                                                                diet.phrases[1]
+                                                              );
+                                                              if (this.isAlreadyFound === false) {
+                                                                this.mayContainArray.push(diet.phrases[1]);
+                                                              }
+                                                            } 
+                                                          }
+                                                        });
+                                                      }
+                                            
+                                                      // if diet was not mentioned in entry_allergens, check product_attributes
+                                                      if (isMentioned === false) {
+                                                        product_attributes.forEach((atr) => {
+                                                          if (atr.name.toLowerCase() == diet.name && atr.value == 'kyllä') {
+                                                            isMentioned = true;
+                                                          } else if (
+                                                            atr.name.toLowerCase() == diet.name &&
+                                                            atr.value == 'ei'
+                                                          ) {
+                                                            isMentioned = true;
+                                                            this.isAlreadyFound = this.foundAllergensArray.includes(
+                                                              diet.phrases[0]
+                                                            );
+                                                            if (this.isAlreadyFound === false) {
+                                                              this.foundAllergensArray.push(diet.phrases[0]);
+                                                            }
+                                                          }
+                                                        });
+                                                      }
+                                            
+                                                      // if diet was not mentioned in entry_allergens or product_attributes, check tags
+                                                      if (isMentioned === false) {
+                                                        tags.forEach((tag) => {
+                                                          if (tag.id == diet.tag_excludes) {
+                                                            isMentioned = true;
+                                                          } else if (tag.id == diet.tag_includes) {
+                                                            isMentioned = true;
+                                                            this.isAlreadyFound = this.foundAllergensArray.includes(
+                                                              diet.phrases[0]
+                                                            );
+                                                            if (this.isAlreadyFound === false) {
+                                                              this.foundAllergensArray.push(diet.phrases[0]);
+                                                            }
+                                                          }
+                                                        });
+                                                      }
+                                                      // if the diet was unmatched, let the user know
+                                                      if (isMentioned === false) {
+                                                        this.dietService.addInconclusiveDiet(diet.name);
+                                                      }
+                                                    } // if diet status true end
+                                                  }); // diet forEach end
+                                                });
+                                              } // dietMatch function end
+                                            
+                                        </code>
+                                    </pre>
+                                    <p> Samassa tiedostossa osana showResult-funktiota muutetaan tulosnäkymää sen mukaan, löytyikö tuotteen tiedoista mainintaa ruokavalioon sopivuudesta.
+                                         Tässä esimerkissä tuotteesta ei ole löytynyt käyttäjää allergisoivia ainesosia, mutta ruokavalion kannalta tulos on epävarma, joten vihreän merkin sijaan näytetään keltainen varoituskolmio.  </p>
+                                    <pre>
+                                        <code class="language-typescript">
+                                    else if (this.dietService.inconclusiveDiets.length !== 0) {
+                                        this.image =
+                                          'https://cdn.s-cloud.fi/v1/h480w320/product/ean/' +
+                                          this.code +
+                                          '_kuva1.jpg';
+                                        this.restext = 'HUOM!';
+                                        this.logo = 'report_problem';
+                                        this.logocolor = '#FF9933';
+                                      } 
+                                      </code>
+                                      </pre>
+
+                                    <p> Tulosnäkymässä <b> result.component.html</b> tuotteesta löytynyt ruokavalion allergeeni, kuten laktoosi, näytetään käyttäjälle osana tuotteesta löytyneiden käyttäjälle sopimattomien ainesosien listaa (foundAllergies). 
+                                        Jos käyttäjän valitseman ruokavalion allergeenista ei löytynyt mitään mainintaa, eikä näin ollen voitu varmistaa tuotteen sopivuutta, 
+                                        käyttäjälle ilmestyy teksti "Tarkista ruokavaliot" (dietNote), jonka alle ilmestyy "Ruokavaliot"-nappi, jota painamalla avautuu dialogi. Dialogissa
+                                    kerrotaan ne ruokavaliot, joiden osalta tuotteen sopivuudesta ei voitu varmistua. </p>
+                                    <pre>
+                                        <code class="language-markup">
+                                            &lt;div [hidden] = "isDisplay" [ngClass]="['fs' + size]" *ngIf="data && data.lenght !== 0">
+                                                &lt;img src="{{image}}" (error)="this.image='../assets/img/NotFound.png'" alt="kuva tuotteesta">
+                                                &lt;p id="fs3-s">{{data.name}}&lt;/p>
+                                                 &lt;div id="iconDiv">&lt;mat-icon class="result-icon" [style.--color]="logocolor">{{logo}}&lt;/mat-icon>&lt;/div>
+                                                 &lt;div [ngClass]="['fs' + size]" class="result-text">{{restext}}&lt;/div>
+                                                 &lt;P>{{description}}&lt;/P>
+                                                 &lt;div [ngClass]="['fs' + size]" class="allergies-text" *ngIf="this.foundAllergensArray.length !== 0">{{foundAllergies}}&lt;/div>
+                                                 &lt;div [ngClass]="['fs' + size]" class="allergies-text" *ngIf="this.mayContainArray.length !== 0">{{mayContainList}}&lt;/div>
+                                            &lt;div [ngClass]="['fs' + size]" class="allergies-text" *ngIf="this.dietService.inconclusiveDiets.length >= 1">{{dietNote}}&lt;/div>
+                                            &lt;div>
+                                              &lt;button *ngIf="this.dietService.inconclusiveDiets.length >= 1" mat-raised-button color='primary' class='listBtn'
+                                              [ngClass]="['fs' + size]" (click)="openDialog()">Ruokavaliot&lt;/button>
+                                        </code>
+                                    </pre>
+
+
+                                    
+
+
+
+ 
+                            </section>
+													<!-- Footer -->
+                          <footer>
+                            <div class="pagination">
+                              <!--<a href="#" class="previous">Prev</a>-->
+                              <a href="#" class="page active">1</a>
+                              <a href="syksy2.html" class="page">2</a>
+
+                            </div>
+                          </footer>
+					</div>
+
+				<!-- Copyright -->
+                <div id="copyright">
+                    <ul><li>&copy; Elina Vänttinen, n3898@student.jamk.fi </li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li></ul>
+                </div>
+
+        </div>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+      <script src="assets/js/prism.js"></script>
+
+
+	</body>
+</html>
